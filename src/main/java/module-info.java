@@ -1,6 +1,8 @@
 module int_group.mytunesintgroup {
     requires javafx.controls;
     requires javafx.fxml;
+    requires javafx.media;
+    requires java.sql;
 
     opens int_group6.mytunesintgroup6 to javafx.fxml;
     exports int_group6.mytunesintgroup6;
