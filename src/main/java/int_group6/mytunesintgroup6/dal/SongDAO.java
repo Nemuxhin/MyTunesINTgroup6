@@ -78,9 +78,9 @@ public class SongDAO {
         }
     }
 
-    // (Opzionale) UPDATE: modificare una canzone esistente
+    // Update an existing song
     public void updateSong(Song song) {
-        String sql = "UPDATE Song SET Title = ?, Artist = ?, Category = ?, Time = ?, FilePath = ? WHERE Id = ?";
+        String sql = "UPDATE Song SET Title=?, Artist=?, Category=?, Time=?, FilePath=? WHERE Id=?";
 
         try (Connection conn = connectionProvider.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -90,7 +90,7 @@ public class SongDAO {
             pstmt.setString(3, song.getCategory());
             pstmt.setString(4, song.getTime());
             pstmt.setString(5, song.getFilePath());
-            pstmt.setInt(6, song.getId());
+            pstmt.setInt(6, song.getId()); // Use the ID to find the right row
 
             pstmt.executeUpdate();
 

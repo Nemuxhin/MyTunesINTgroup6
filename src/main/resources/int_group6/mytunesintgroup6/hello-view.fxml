@@ -11,6 +11,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.control.Slider?>
 
 
 <BorderPane fx:controller="int_group6.mytunesintgroup6.gui.HelloController"
@@ -19,37 +20,45 @@
             xmlns:fx="http://javafx.com/fxml/1"
             style="-fx-background-color: #2b2b2b; -fx-padding: 10;">
 
-    <!-- TOP: Player controls + filter -->
     <top>
         <HBox spacing="15.0" BorderPane.alignment="CENTER">
             <padding>
                 <Insets top="10" right="10" bottom="10" left="10"/>
             </padding>
 
-            <!-- Player controls -->
-            <HBox spacing="10.0">
-                <Button fx:id="btnPlay" text="▶" prefWidth="40"
-                        style="-fx-background-radius: 20; -fx-background-color: #4a4a4a; -fx-text-fill: white;"/>
-                <Button fx:id="btnPause" text="⏸" prefWidth="40"
-                        style="-fx-background-radius: 20; -fx-background-color: #4a4a4a; -fx-text-fill: white;"/>
-                <Button fx:id="btnStop" text="⏹" prefWidth="40"
-                        style="-fx-background-radius: 20; -fx-background-color: #4a4a4a; -fx-text-fill: white;"/>
+            <VBox spacing="5.0" HBox.hgrow="ALWAYS">
+                <HBox alignment="CENTER_LEFT" spacing="10.0">
+                    <Label fx:id="lblCurrentTime" text="0:00" style="-fx-text-fill: #cccccc; -fx-font-size: 10;"/>
+                    <Slider fx:id="songSlider" HBox.hgrow="ALWAYS" />
+                    <Label fx:id="lblTotalTime" text="0:00" style="-fx-text-fill: #cccccc; -fx-font-size: 10;"/>
+                </HBox>
 
-                <Label fx:id="lblNowPlaying" text="(none) ... is playing"
-                       style="-fx-text-fill: #e0e0e0; -fx-font-size: 14; -fx-padding: 0 0 0 15;"/>
-            </HBox>
+                <HBox spacing="10.0" alignment="CENTER_LEFT">
+                    <Button text="⏮" prefWidth="30" style="-fx-background-radius: 20; -fx-background-color: #4a4a4a; -fx-text-fill: white;"/>
 
-            <!-- Spacer -->
-            <Region HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="btnPlay" text="▶" prefWidth="40"
+                            style="-fx-background-radius: 20; -fx-background-color: #4a4a4a; -fx-text-fill: white;"/>
+                    <Button fx:id="btnPause" text="⏸" prefWidth="40"
+                            style="-fx-background-radius: 20; -fx-background-color: #4a4a4a; -fx-text-fill: white;"/>
+                    <Button fx:id="btnStop" text="⏹" prefWidth="40"
+                            style="-fx-background-radius: 20; -fx-background-color: #4a4a4a; -fx-text-fill: white;"/>
 
-            <!-- Filter area -->
-            <HBox spacing="10.0">
+                    <Button text="⏭" prefWidth="30" style="-fx-background-radius: 20; -fx-background-color: #4a4a4a; -fx-text-fill: white;"/>
+
+                    <Label fx:id="lblNowPlaying" text="(none) ... is playing"
+                           style="-fx-text-fill: #e0e0e0; -fx-font-size: 14; -fx-padding: 0 0 0 15;"/>
+                </HBox>
+            </VBox>
+
+            <Region prefWidth="20.0" />
+
+            <HBox spacing="10.0" alignment="CENTER_RIGHT">
                 <Label text="Filter:"
                        style="-fx-text-fill: #e0e0e0; -fx-font-size: 13;"/>
                 <TextField fx:id="txtFilter" promptText="Title or artist"
-                           prefWidth="220"
+                           prefWidth="180"
                            style="-fx-background-color: #3a3a3a; -fx-text-fill: white; -fx-prompt-text-fill: #aaaaaa;"/>
-                <Button fx:id="btnFilterClear" text="Filter"
+                <Button fx:id="btnFilterClear" text="Clear"
                         style="-fx-background-radius: 6; -fx-background-color: #4a4a4a; -fx-text-fill: white;"/>
             </HBox>
         </HBox>

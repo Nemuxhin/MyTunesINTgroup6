@@ -17,12 +17,34 @@ public class Song {
         this.filePath = filePath;
     }
 
+    // --- GETTERS (You already had these) ---
     public int getId() { return id; }
     public String getTitle() { return title; }
     public String getArtist() { return artist; }
     public String getCategory() { return category; }
     public String getTime() { return time; }
     public String getFilePath() { return filePath; }
+
+    // --- SETTERS (ADD THESE TO FIX THE ERROR) ---
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public void setArtist(String artist) {
+        this.artist = artist;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public void setTime(String time) {
+        this.time = time;
+    }
+
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
+    }
 
     @Override
     public String toString() {
