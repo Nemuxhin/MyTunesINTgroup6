@@ -3,132 +3,113 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Slider?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.cell.PropertyValueFactory?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.layout.Region?>
-<?import javafx.scene.control.Slider?>
-
+<?import javafx.scene.layout.VBox?>
 
 <BorderPane fx:controller="int_group6.mytunesintgroup6.gui.HelloController"
-            prefHeight="600.0" prefWidth="1000.0"
+            prefHeight="650.0" prefWidth="1050.0"
             xmlns="http://javafx.com/javafx/21"
             xmlns:fx="http://javafx.com/fxml/1"
-            style="-fx-background-color: #2b2b2b; -fx-padding: 10;">
+            style="-fx-background-color: linear-gradient(to bottom, #2b2b2b, #1e1e1e); -fx-font-family: 'Segoe UI', sans-serif;">
 
     <top>
-        <HBox spacing="15.0" BorderPane.alignment="CENTER">
-            <padding>
-                <Insets top="10" right="10" bottom="10" left="10"/>
-            </padding>
+        <HBox spacing="20.0" BorderPane.alignment="CENTER" style="-fx-border-color: #3c3c3c; -fx-border-width: 0 0 1 0; -fx-padding: 15;">
 
-            <VBox spacing="5.0" HBox.hgrow="ALWAYS">
+            <VBox spacing="8.0" HBox.hgrow="ALWAYS">
                 <HBox alignment="CENTER_LEFT" spacing="10.0">
-                    <Label fx:id="lblCurrentTime" text="0:00" style="-fx-text-fill: #cccccc; -fx-font-size: 10;"/>
-                    <Slider fx:id="songSlider" HBox.hgrow="ALWAYS" />
-                    <Label fx:id="lblTotalTime" text="0:00" style="-fx-text-fill: #cccccc; -fx-font-size: 10;"/>
+                    <Label fx:id="lblCurrentTime" text="0:00" style="-fx-text-fill: #aaaaaa; -fx-font-size: 11;"/>
+                    <Slider fx:id="songSlider" HBox.hgrow="ALWAYS" style="-fx-cursor: hand;"/>
+                    <Label fx:id="lblTotalTime" text="0:00" style="-fx-text-fill: #aaaaaa; -fx-font-size: 11;"/>
                 </HBox>
 
-                <HBox spacing="10.0" alignment="CENTER_LEFT">
-                    <Button text="⏮" prefWidth="30" style="-fx-background-radius: 20; -fx-background-color: #4a4a4a; -fx-text-fill: white;"/>
+                <HBox spacing="12.0" alignment="CENTER_LEFT">
+                    <Button text="⏮" prefWidth="35" prefHeight="35"
+                            style="-fx-background-radius: 50; -fx-background-color: #383838; -fx-text-fill: white; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 5, 0, 0, 1);"/>
 
-                    <Button fx:id="btnPlay" text="▶" prefWidth="40"
-                            style="-fx-background-radius: 20; -fx-background-color: #4a4a4a; -fx-text-fill: white;"/>
-                    <Button fx:id="btnPause" text="⏸" prefWidth="40"
-                            style="-fx-background-radius: 20; -fx-background-color: #4a4a4a; -fx-text-fill: white;"/>
-                    <Button fx:id="btnStop" text="⏹" prefWidth="40"
-                            style="-fx-background-radius: 20; -fx-background-color: #4a4a4a; -fx-text-fill: white;"/>
+                    <HBox spacing="5.0">
+                        <Button fx:id="btnPlay" text="▶" prefWidth="45" prefHeight="45"
+                                style="-fx-background-radius: 50; -fx-background-color: #4a90e2; -fx-text-fill: white; -fx-font-size: 18; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 8, 0, 0, 2);"/>
+                        <Button fx:id="btnPause" text="⏸" prefWidth="45" prefHeight="45"
+                                style="-fx-background-radius: 50; -fx-background-color: #383838; -fx-text-fill: white; -fx-font-size: 14; -fx-cursor: hand;"/>
+                        <Button fx:id="btnStop" text="⏹" prefWidth="45" prefHeight="45"
+                                style="-fx-background-radius: 50; -fx-background-color: #383838; -fx-text-fill: white; -fx-font-size: 14; -fx-cursor: hand;"/>
+                    </HBox>
 
-                    <Button text="⏭" prefWidth="30" style="-fx-background-radius: 20; -fx-background-color: #4a4a4a; -fx-text-fill: white;"/>
+                    <Button text="⏭" prefWidth="35" prefHeight="35"
+                            style="-fx-background-radius: 50; -fx-background-color: #383838; -fx-text-fill: white; -fx-cursor: hand;"/>
 
-                    <Label fx:id="lblNowPlaying" text="(none) ... is playing"
-                           style="-fx-text-fill: #e0e0e0; -fx-font-size: 14; -fx-padding: 0 0 0 15;"/>
+                    <Region prefWidth="15.0" />
+
+                    <HBox alignment="CENTER" spacing="5">
+                        <Label text="🔊" style="-fx-text-fill: #aaaaaa; -fx-font-size: 14;"/>
+                        <Slider fx:id="volumeSlider" max="100" value="50" prefWidth="100" style="-fx-cursor: hand;"/>
+                    </HBox>
+
+                    <Label fx:id="lblNowPlaying" text="Ready to Play..."
+                           style="-fx-text-fill: #e0e0e0; -fx-font-size: 14; -fx-font-weight: bold; -fx-padding: 0 0 0 15;"/>
                 </HBox>
             </VBox>
 
-            <Region prefWidth="20.0" />
-
             <HBox spacing="10.0" alignment="CENTER_RIGHT">
-                <Label text="Filter:"
-                       style="-fx-text-fill: #e0e0e0; -fx-font-size: 13;"/>
-                <TextField fx:id="txtFilter" promptText="Title or artist"
-                           prefWidth="180"
-                           style="-fx-background-color: #3a3a3a; -fx-text-fill: white; -fx-prompt-text-fill: #aaaaaa;"/>
+                <Label text="🔍" style="-fx-text-fill: #888888; -fx-font-size: 16;"/>
+                <TextField fx:id="txtFilter" promptText="Search songs..."
+                           prefWidth="200"
+                           style="-fx-background-color: #333333; -fx-text-fill: white; -fx-prompt-text-fill: #888888; -fx-background-radius: 15; -fx-padding: 8;"/>
                 <Button fx:id="btnFilterClear" text="Clear"
-                        style="-fx-background-radius: 6; -fx-background-color: #4a4a4a; -fx-text-fill: white;"/>
+                        style="-fx-background-radius: 15; -fx-background-color: #444444; -fx-text-fill: white; -fx-cursor: hand;"/>
             </HBox>
         </HBox>
     </top>
 
-    <!-- CENTER: Three main tables -->
     <center>
-        <HBox spacing="10.0">
-            <padding>
-                <Insets top="5" right="10" bottom="5" left="10"/>
-            </padding>
+        <HBox spacing="15.0" style="-fx-padding: 15;">
 
-            <!-- Playlists panel -->
-            <VBox spacing="5.0" prefWidth="220.0">
-                <Label text="Playlists"
-                       style="-fx-text-fill: #f0f0f0; -fx-font-size: 14; -fx-font-weight: bold;"/>
-                <TableView fx:id="tblPlaylists" prefHeight="400.0" prefWidth="380.0"
-                           style="-fx-background-color: #3a3a3a; -fx-control-inner-background: #3a3a3a; -fx-base: #3a3a3a;">
-                <columns>
-                        <TableColumn fx:id="colPlaylistName" text="Name" prefWidth="200.0"/>
+            <VBox spacing="8.0" prefWidth="250.0" HBox.hgrow="SOMETIMES">
+                <Label text="MY PLAYLISTS" style="-fx-text-fill: #666666; -fx-font-size: 12; -fx-font-weight: bold;"/>
+                <TableView fx:id="tblPlaylists" VBox.vgrow="ALWAYS"
+                           style="-fx-background-color: #252525; -fx-base: #252525; -fx-control-inner-background: #252525; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 5, 0, 0, 1);">
+                    <columns>
+                        <TableColumn fx:id="colPlaylistName" text="Name" prefWidth="230.0"/>
                     </columns>
                 </TableView>
             </VBox>
 
-            <!-- Songs on playlist panel -->
-            <VBox spacing="5.0" prefWidth="380.0">
-                <Label text="Songs in playlist"
-                       style="-fx-text-fill: #f0f0f0; -fx-font-size: 14; -fx-font-weight: bold;"/>
-                <TableView fx:id="tblSongsInPlaylist" prefHeight="400.0" prefWidth="380.0"
-                           style="-fx-background-color: #3a3a3a; -fx-control-inner-background: #3a3a3a; -fx-base: #3a3a3a;">
+            <VBox spacing="8.0" prefWidth="350.0" HBox.hgrow="ALWAYS">
+                <Label text="CURRENT PLAYLIST SONGS" style="-fx-text-fill: #666666; -fx-font-size: 12; -fx-font-weight: bold;"/>
+                <TableView fx:id="tblSongsInPlaylist" VBox.vgrow="ALWAYS"
+                           style="-fx-background-color: #252525; -fx-base: #252525; -fx-control-inner-background: #252525; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 5, 0, 0, 1);">
                     <columns>
-                        <TableColumn fx:id="colPlSongTitle" text="Title" prefWidth="150.0"/>
-                        <TableColumn fx:id="colPlSongArtist" text="Artist" prefWidth="120.0"/>
-                        <TableColumn fx:id="colPlSongCategory" text="Category" prefWidth="80.0"/>
-                        <TableColumn fx:id="colPlSongTime" text="Time" prefWidth="60.0"/>
+                        <TableColumn fx:id="colPlSongTitle" text="Title" prefWidth="140.0"/>
+                        <TableColumn fx:id="colPlSongArtist" text="Artist" prefWidth="100.0"/>
+                        <TableColumn fx:id="colPlSongCategory" text="Cat" prefWidth="60.0"/>
+                        <TableColumn fx:id="colPlSongTime" text="Time" prefWidth="50.0"/>
                     </columns>
                 </TableView>
             </VBox>
 
-            <!-- All songs panel -->
-            <VBox spacing="5.0" prefWidth="380.0">
-                <Label text="All songs"
-                       style="-fx-text-fill: #f0f0f0; -fx-font-size: 14; -fx-font-weight: bold;"/>
-                <TableView fx:id="tblSongs" prefHeight="400.0" prefWidth="380.0"
-                           style="-fx-background-color: #3a3a3a; -fx-control-inner-background: #3a3a3a; -fx-base: #3a3a3a;">
+            <VBox spacing="8.0" prefWidth="400.0" HBox.hgrow="ALWAYS">
+                <Label text="LIBRARY" style="-fx-text-fill: #666666; -fx-font-size: 12; -fx-font-weight: bold;"/>
+                <TableView fx:id="tblSongs" VBox.vgrow="ALWAYS"
+                           style="-fx-background-color: #252525; -fx-base: #252525; -fx-control-inner-background: #252525; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 5, 0, 0, 1);">
                     <columns>
-                        <TableColumn fx:id="colTitle" text="Title" prefWidth="160.0">
-                            <cellValueFactory>
-                                <PropertyValueFactory property="title"/>
-                            </cellValueFactory>
+                        <TableColumn fx:id="colTitle" text="Title" prefWidth="150.0">
+                            <cellValueFactory><PropertyValueFactory property="title"/></cellValueFactory>
                         </TableColumn>
-                        <TableColumn fx:id="colArtist" text="Artist" prefWidth="120.0">
-                            <cellValueFactory>
-                                <PropertyValueFactory property="artist"/>
-                            </cellValueFactory>
+                        <TableColumn fx:id="colArtist" text="Artist" prefWidth="110.0">
+                            <cellValueFactory><PropertyValueFactory property="artist"/></cellValueFactory>
                         </TableColumn>
-                        <TableColumn fx:id="colCategory" text="Category" prefWidth="80.0">
-                            <cellValueFactory>
-                                <PropertyValueFactory property="category"/>
-                            </cellValueFactory>
+                        <TableColumn fx:id="colCategory" text="Category" prefWidth="70.0">
+                            <cellValueFactory><PropertyValueFactory property="category"/></cellValueFactory>
                         </TableColumn>
                         <TableColumn fx:id="colTime" text="Time" prefWidth="60.0">
-                            <cellValueFactory>
-                                <PropertyValueFactory property="time"/>
-                            </cellValueFactory>
-                        </TableColumn>
-                        <TableColumn fx:id="colFilePath" text="File path" prefWidth="220.0">
-                            <cellValueFactory>
-                                <PropertyValueFactory property="filePath"/>
-                            </cellValueFactory>
+                            <cellValueFactory><PropertyValueFactory property="time"/></cellValueFactory>
                         </TableColumn>
                     </columns>
                 </TableView>
@@ -136,51 +117,33 @@
         </HBox>
     </center>
 
-    <!-- BOTTOM: Action buttons -->
     <bottom>
-        <HBox spacing="20.0" BorderPane.alignment="CENTER">
-            <padding>
-                <Insets top="10" right="10" bottom="10" left="10"/>
-            </padding>
+        <HBox spacing="20.0" BorderPane.alignment="CENTER" style="-fx-padding: 15; -fx-background-color: #222222; -fx-border-color: #333333; -fx-border-width: 1 0 0 0;">
 
-            <!-- Playlist buttons -->
             <HBox spacing="8.0">
-                <Button fx:id="btnNewPlaylist" text="New Playlist"
-                        style="-fx-background-radius: 6; -fx-background-color: #4a4a4a; -fx-text-fill: white;"/>
-                <Button fx:id="btnEditPlaylist" text="Edit Playlist"
-                        style="-fx-background-radius: 6; -fx-background-color: #4a4a4a; -fx-text-fill: white;"/>
-                <Button fx:id="btnDeletePlaylist" text="Delete Playlist"
-                        style="-fx-background-radius: 6; -fx-background-color: #4a4a4a; -fx-text-fill: white;"/>
+                <Button fx:id="btnNewPlaylist" text="New" style="-fx-base: #444444; -fx-text-fill: white; -fx-background-radius: 5;"/>
+                <Button fx:id="btnEditPlaylist" text="Edit" style="-fx-base: #444444; -fx-text-fill: white; -fx-background-radius: 5;"/>
+                <Button fx:id="btnDeletePlaylist" text="Delete" style="-fx-base: #444444; -fx-text-fill: white; -fx-background-radius: 5;"/>
             </HBox>
 
-            <!-- Spacer -->
             <Region HBox.hgrow="ALWAYS"/>
 
-            <!-- Songs in playlist buttons -->
-            <HBox spacing="8.0">
-                <Button fx:id="btnAddToPlaylist" text="Add →"
-                        style="-fx-background-radius: 6; -fx-background-color: #4a4a4a; -fx-text-fill: white;"/>
-                <Button fx:id="btnMoveUp" text="Move Up"
-                        style="-fx-background-radius: 6; -fx-background-color: #4a4a4a; -fx-text-fill: white;"/>
-                <Button fx:id="btnMoveDown" text="Move Down"
-                        style="-fx-background-radius: 6; -fx-background-color: #4a4a4a; -fx-text-fill: white;"/>
-                <Button fx:id="btnRemoveFromPlaylist" text="Remove"
-                        style="-fx-background-radius: 6; -fx-background-color: #4a4a4a; -fx-text-fill: white;"/>
+            <HBox spacing="8.0" alignment="CENTER">
+                <Button fx:id="btnAddToPlaylist" text="Add ➡" style="-fx-base: #3a6ea5; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;"/>
+                <Button fx:id="btnRemoveFromPlaylist" text="⬅ Remove" style="-fx-base: #444444; -fx-text-fill: white; -fx-background-radius: 5;"/>
+                <Region prefWidth="10"/>
+                <Button fx:id="btnMoveUp" text="▲" style="-fx-base: #444444; -fx-text-fill: white; -fx-background-radius: 5;"/>
+                <Button fx:id="btnMoveDown" text="▼" style="-fx-base: #444444; -fx-text-fill: white; -fx-background-radius: 5;"/>
             </HBox>
 
-            <!-- Spacer -->
             <Region HBox.hgrow="ALWAYS"/>
 
-            <!-- Song buttons -->
             <HBox spacing="8.0">
-                <Button fx:id="btnNewSong" text="New Song"
-                        style="-fx-background-radius: 6; -fx-background-color: #4a4a4a; -fx-text-fill: white;"/>
-                <Button fx:id="btnEditSong" text="Edit Song"
-                        style="-fx-background-radius: 6; -fx-background-color: #4a4a4a; -fx-text-fill: white;"/>
-                <Button fx:id="btnDeleteSong" text="Delete Song"
-                        style="-fx-background-radius: 6; -fx-background-color: #4a4a4a; -fx-text-fill: white;"/>
-                <Button fx:id="btnClose" text="Close"
-                        style="-fx-background-radius: 6; -fx-background-color: #7a3b3b; -fx-text-fill: white;"/>
+                <Button fx:id="btnNewSong" text="New" style="-fx-base: #444444; -fx-text-fill: white; -fx-background-radius: 5;"/>
+                <Button fx:id="btnEditSong" text="Edit" style="-fx-base: #444444; -fx-text-fill: white; -fx-background-radius: 5;"/>
+                <Button fx:id="btnDeleteSong" text="Delete" style="-fx-base: #444444; -fx-text-fill: white; -fx-background-radius: 5;"/>
+                <Region prefWidth="10"/>
+                <Button fx:id="btnClose" text="Close" style="-fx-background-color: #a63a3a; -fx-text-fill: white; -fx-background-radius: 5; -fx-font-weight: bold;"/>
             </HBox>
         </HBox>
     </bottom>

@@ -25,7 +25,6 @@ public class Song {
     public String getTime() { return time; }
     public String getFilePath() { return filePath; }
 
-    // --- SETTERS (ADD THESE TO FIX THE ERROR) ---
     public void setTitle(String title) {
         this.title = title;
     }

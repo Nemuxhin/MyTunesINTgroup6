@@ -13,7 +13,6 @@ import javafx.scene.media.Media;       // Import for Music
 import javafx.scene.media.MediaPlayer; // Import for Music
 import java.io.File;                   // Import for File check
 import java.net.URL;
-import java.util.List;
 import java.util.ResourceBundle;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
@@ -39,13 +38,13 @@ public class HelloController implements Initializable {
     @FXML private TableColumn<Song, String> colArtist;
     @FXML private TableColumn<Song, String> colCategory;
     @FXML private TableColumn<Song, String> colTime;
-    @FXML private TableColumn<Song, String> colFilePath;
 
     @FXML private Button btnNewPlaylist, btnEditPlaylist, btnDeletePlaylist;
     @FXML private Button btnAddToPlaylist, btnMoveUp, btnMoveDown, btnRemoveFromPlaylist;
     @FXML private Button btnNewSong, btnEditSong, btnDeleteSong, btnClose;
 
     @FXML private Slider songSlider;
+    @FXML private Slider volumeSlider;
     @FXML private Label lblCurrentTime;
     @FXML private Label lblTotalTime;
 
@@ -53,112 +52,248 @@ public class HelloController implements Initializable {
     @FXML private TableColumn<Playlist, String> colPlaylistName;
 
 
+
     private MediaPlayer mediaPlayer; // To play music
+    private javafx.collections.ObservableList<Song> allSongs;
+    private javafx.collections.transformation.FilteredList<Song> filteredSongs;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         System.out.println("Initializing Controller...");
 
-        // 1. Setup Columns
+        // --- 1. SETUP COLUMNS ---
         colTitle.setCellValueFactory(new PropertyValueFactory<>("title"));
         colArtist.setCellValueFactory(new PropertyValueFactory<>("artist"));
         colCategory.setCellValueFactory(new PropertyValueFactory<>("category"));
         colTime.setCellValueFactory(new PropertyValueFactory<>("time"));
-        colFilePath.setCellValueFactory(new PropertyValueFactory<>("filePath"));
-        // --- MIDDLE TABLE SETUP (Songs inside Playlist) ---
+
+        // Playlist Columns
+        colPlaylistName.setCellValueFactory(new PropertyValueFactory<>("name"));
         colPlSongTitle.setCellValueFactory(new PropertyValueFactory<>("title"));
         colPlSongArtist.setCellValueFactory(new PropertyValueFactory<>("artist"));
         colPlSongCategory.setCellValueFactory(new PropertyValueFactory<>("category"));
         colPlSongTime.setCellValueFactory(new PropertyValueFactory<>("time"));
-        // --- CONNECT PLAYLIST SONG BUTTONS ---
+
+        // --- 2. SETUP DATA & SEARCH CHAIN (The Critical Part) ---
+        SongDAO songDAO = new SongDAO();
+
+        // A. Master List: Holds the raw data from database
+        allSongs = javafx.collections.FXCollections.observableArrayList(songDAO.getAllSongs());
+
+        // B. Filtered List: Wraps the Master List. Initially true (shows everything).
+        filteredSongs = new javafx.collections.transformation.FilteredList<>(allSongs, b -> true);
+
+        // C. Sorted List: Wraps the Filtered List (allows clicking headers to sort)
+        javafx.collections.transformation.SortedList<Song> sortedData = new javafx.collections.transformation.SortedList<>(filteredSongs);
+
+        // D. Bind sorting: Connect the sorted list to the table's sort order
+        sortedData.comparatorProperty().bind(tblSongs.comparatorProperty());
+
+        // E. SET ITEMS: The Table MUST see 'sortedData', NOT 'allSongs'
+        tblSongs.setItems(sortedData);
+
+        // --- 3. SEARCH LISTENER ---
+        txtFilter.textProperty().addListener((observable, oldValue, newValue) -> {
+
+            // Toggle Button Text (Requirement)
+            if (newValue != null && !newValue.isEmpty()) {
+                btnFilterClear.setText("Clear");
+            } else {
+                btnFilterClear.setText("Filter");
+            }
+
+            // Update the Filter Logic
+            filteredSongs.setPredicate(song -> {
+                // If search is empty, show all songs
+                if (newValue == null || newValue.isEmpty()) {
+                    return true;
+                }
+
+                String lowerCaseFilter = newValue.toLowerCase();
+
+                // Check if the search matches Title or Artist
+                if (song.getTitle().toLowerCase().contains(lowerCaseFilter)) {
+                    return true;
+                } else if (song.getArtist().toLowerCase().contains(lowerCaseFilter)) {
+                    return true;
+                }
+                return false; // Does not match
+            });
+        });
+
+        // --- 4. BUTTON CONNECTIONS ---
+        btnPlay.setOnAction(event -> playSong());
+        btnPause.setOnAction(event -> pauseSong());
+        btnStop.setOnAction(event -> stopSong());
+
+        btnNewSong.setOnAction(event -> openNewSongWindow());
+        btnEditSong.setOnAction(event -> editSong());
+        btnDeleteSong.setOnAction(event -> deleteSong());
+
+        btnNewPlaylist.setOnAction(event -> handleNewPlaylist());
+        btnEditPlaylist.setOnAction(event -> handleEditPlaylist());
+        btnDeletePlaylist.setOnAction(event -> handleDeletePlaylist());
+
         btnAddToPlaylist.setOnAction(event -> handleAddToPlaylist());
         btnRemoveFromPlaylist.setOnAction(event -> handleRemoveFromPlaylist());
         btnMoveUp.setOnAction(event -> handleMoveUp());
         btnMoveDown.setOnAction(event -> handleMoveDown());
 
+        btnFilterClear.setOnAction(event -> {
+            if (!txtFilter.getText().isEmpty()) txtFilter.clear();
+        });
 
-        // 2. Load Data from Database
-        try {
-            SongDAO songDAO = new SongDAO();
-            List<Song> dbSongs = songDAO.getAllSongs();
-            tblSongs.getItems().addAll(dbSongs);
-            System.out.println("Success! Loaded " + dbSongs.size() + " songs.");
-        } catch (Exception e) {
-            System.err.println("Something went wrong loading songs!");
-            e.printStackTrace();
-        }
-
-        // LISTENER: When a Playlist is clicked, load its songs
+        // Playlist Selection Listener (Middle Table)
         tblPlaylists.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
-                // Use your DAO to get the songs
                 PlaylistDAO playlistDAO = new PlaylistDAO();
-                List<Song> songs = playlistDAO.getSongsInPlaylist(newVal);
-
-                // Fill the middle table
-                tblSongsInPlaylist.getItems().setAll(songs);
+                tblSongsInPlaylist.getItems().setAll(playlistDAO.getSongsInPlaylist(newVal));
             }
         });
 
-        btnPlay.setOnAction(event -> playSong());
+        // Volume Listener
+        volumeSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if (mediaPlayer != null) mediaPlayer.setVolume(newValue.doubleValue() / 100);
+        });
 
-        btnPause.setOnAction(event -> pauseSong());
-
-        btnStop.setOnAction(event -> stopSong());
-
-        btnNewSong.setOnAction(event -> openNewSongWindow());
-
-        btnDeleteSong.setOnAction(event -> deleteSong());
-
-        btnEditSong.setOnAction(event -> editSong());
-
-        // --- PLAYLIST SETUP ---
-        // 1. Setup Column
-        colPlaylistName.setCellValueFactory(new PropertyValueFactory<>("name"));
-
-        // 2. Load Data
+        // Initial Data Load for Playlists
         refreshPlaylists();
-
-        // 3. Connect Buttons
-        btnNewPlaylist.setOnAction(event -> handleNewPlaylist());
-        btnEditPlaylist.setOnAction(event -> handleEditPlaylist());
-        btnDeletePlaylist.setOnAction(event -> handleDeletePlaylist());
     }
     // --- MEDIA PLAYER CONTROLS ---
 
     @FXML
     private void playSong() {
-        // CASE 1: Resume if paused
+        // 1. RESUME if paused
         if (mediaPlayer != null && mediaPlayer.getStatus() == MediaPlayer.Status.PAUSED) {
             mediaPlayer.play();
-            lblNowPlaying.setText("Playing: " + tblSongs.getSelectionModel().getSelectedItem().getTitle());
+            lblNowPlaying.setText("Playing: " + getCurrentSongTitle());
             return;
         }
 
-        // CASE 2: Start new song
-        Song selectedSong = tblSongs.getSelectionModel().getSelectedItem();
-        if (selectedSong != null) {
-            // Stop old music if playing
-            if (mediaPlayer != null) {
-                mediaPlayer.stop();
-                mediaPlayer.dispose(); // Release memory
-            }
+        // 2. FIND THE SELECTED SONG (Check both tables)
+        Song selectedSong = null;
 
-            File file = new File(selectedSong.getFilePath());
+        // Check Middle Table
+        if (tblSongsInPlaylist.getSelectionModel().getSelectedItem() != null) {
+            selectedSong = tblSongsInPlaylist.getSelectionModel().getSelectedItem();
+        }
+        // Check Right Table
+        else if (tblSongs.getSelectionModel().getSelectedItem() != null) {
+            selectedSong = tblSongs.getSelectionModel().getSelectedItem();
+        }
+
+        // 3. PLAY IT
+        if (selectedSong != null) {
+            playMediaFile(selectedSong);
+        } else {
+            lblNowPlaying.setText("Please select a song.");
+        }
+    }
+
+    /**
+     * Helper method to handle the actual file loading and playing
+     * (Keeps playSong clean)
+     */
+    private void playMediaFile(Song song) {
+        // Stop previous
+        if (mediaPlayer != null) {
+            mediaPlayer.stop();
+            mediaPlayer.dispose();
+
+            File file = new File(song.getFilePath());
             if (file.exists()) {
                 Media media = new Media(file.toURI().toString());
                 mediaPlayer = new MediaPlayer(media);
 
-                // 1. Hook up the Progress Bar (The complex part)
-                setupProgressBar();
+                // Grab the current slider value immediately
+                mediaPlayer.setVolume(volumeSlider.getValue() / 100);
 
-                // 2. Play
+                // ... (Rest of setupProgressBar / play logic) ...
+
                 mediaPlayer.play();
-                lblNowPlaying.setText("Playing: " + selectedSong.getTitle());
+            }
+
+        }
+
+        File file = new File(song.getFilePath());
+        if (file.exists()) {
+            Media media = new Media(file.toURI().toString());
+            mediaPlayer = new MediaPlayer(media);
+
+            // Re-connect the slider
+            setupProgressBar();
+
+            // --- AUTO-PLAY NEXT SONG LOGIC ---
+            // When this song finishes, try to find the next one in the playlist.
+            mediaPlayer.setOnEndOfMedia(this::playNextSong);
+
+            mediaPlayer.play();
+            lblNowPlaying.setText("Playing: " + song.getTitle());
+        } else {
+            lblNowPlaying.setText("Error: File not found: " + song.getFilePath());
+        }
+    }
+
+    @FXML
+    private void playNextSong() {
+        // We need to know which table is currently active
+        TableView<Song> activeTable = null;
+
+        if (tblSongsInPlaylist.getSelectionModel().getSelectedItem() != null) {
+            activeTable = tblSongsInPlaylist;
+        } else if (tblSongs.getSelectionModel().getSelectedItem() != null) {
+            activeTable = tblSongs;
+        }
+
+        if (activeTable != null) {
+            // Get current index
+            int currentIndex = activeTable.getSelectionModel().getSelectedIndex();
+            int totalSize = activeTable.getItems().size();
+
+            // Calculate next index
+            int nextIndex = currentIndex + 1;
+
+            // If we are not at the end of the list, play the next one
+            if (nextIndex < totalSize) {
+                // Select it visually
+                activeTable.getSelectionModel().select(nextIndex);
+                // Grab the song object
+                Song nextSong = activeTable.getItems().get(nextIndex);
+                // Play it
+                playMediaFile(nextSong);
             } else {
-                lblNowPlaying.setText("Error: File not found.");
+                lblNowPlaying.setText("End of Playlist.");
+                if (mediaPlayer != null) mediaPlayer.stop();
             }
         }
+    }
+
+    @FXML
+    private void playPreviousSong() {
+        TableView<Song> activeTable = null;
+        if (tblSongsInPlaylist.getSelectionModel().getSelectedItem() != null) activeTable = tblSongsInPlaylist;
+        else if (tblSongs.getSelectionModel().getSelectedItem() != null) activeTable = tblSongs;
+
+        if (activeTable != null) {
+            int currentIndex = activeTable.getSelectionModel().getSelectedIndex();
+            int prevIndex = currentIndex - 1;
+
+            if (prevIndex >= 0) {
+                activeTable.getSelectionModel().select(prevIndex);
+                playMediaFile(activeTable.getItems().get(prevIndex));
+            } else {
+                mediaPlayer.stop();
+            }
+        }
+    }
+
+    // Helper to get title safely for the label
+    private String getCurrentSongTitle() {
+        if (mediaPlayer != null) {
+            // This is a quick hack to keep the label valid on resume
+            return lblNowPlaying.getText().replace("Playing: ", "");
+        }
+        return "...";
     }
 
     @FXML
@@ -465,9 +600,7 @@ public class HelloController implements Initializable {
 
     private void refreshSongTable() {
         SongDAO songDAO = new SongDAO();
-        // Clear the current table
         tblSongs.getItems().clear();
-        // Add the new data directly to the table
         tblSongs.getItems().addAll(songDAO.getAllSongs());
     }
 
