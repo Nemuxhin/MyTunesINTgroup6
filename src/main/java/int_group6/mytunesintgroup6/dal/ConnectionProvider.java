@@ -63,8 +63,7 @@ public class ConnectionProvider {
                 String insertSql = """
                     INSERT INTO Song (Title, Artist, Category, Time, FilePath) VALUES 
                     ('Piano Man', 'Billy Joel', 'Pop', '5:38', 'data/pianoman.mp3'),
-                    ('Bohemian Rhapsody', 'Queen', 'Rock', '5:55', 'data/bohemian.mp3'),
-                    ('Offline Song', 'Local Host', 'Tech', '2:00', 'data/offline.mp3');
+                    ('Darkside', 'iann dior ft. Travis Barker', 'Pop', '2:42', 'data/iann dior - Darkside ft. Travis Barker [Official Music Video].mp3');
                 """;
                 stmt.executeUpdate(insertSql);
             }

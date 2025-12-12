@@ -99,14 +99,29 @@ public class SongDAO {
      * TODO: In the future, we should probably check if the song is in a playlist before deleting it to avoid errors.
      */
     public void deleteSong(Song song) {
-        String sql = "DELETE FROM Song WHERE Id = ?";
+        // Samu: clean up PlaylistSong relations first so we don't leave orphan references.
+        String deleteRelationsSql = "DELETE FROM PlaylistSong WHERE SongId = ?";
+        String deleteSongSql = "DELETE FROM Song WHERE Id = ?";
 
-        try (Connection conn = connectionProvider.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try (Connection conn = connectionProvider.getConnection()) {
+            conn.setAutoCommit(false);
 
-            pstmt.setInt(1, song.getId());
-            pstmt.executeUpdate();
+            try (PreparedStatement psRelations = conn.prepareStatement(deleteRelationsSql);
+                 PreparedStatement psSong = conn.prepareStatement(deleteSongSql)) {
 
+                psRelations.setInt(1, song.getId());
+                psRelations.executeUpdate();
+
+                psSong.setInt(1, song.getId());
+                psSong.executeUpdate();
+
+                conn.commit();
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(true);
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }

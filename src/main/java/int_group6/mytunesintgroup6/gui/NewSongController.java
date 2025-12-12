@@ -1,6 +1,7 @@
 package int_group6.mytunesintgroup6.gui;
 
 import int_group6.mytunesintgroup6.be.Song;
+import int_group6.mytunesintgroup6.bll.MyTunesManager;
 import int_group6.mytunesintgroup6.dal.SongDAO;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -23,6 +24,13 @@ public class NewSongController implements Initializable {
 
     // This variable tells us if we are Editing (not null) or Creating (null)
     private Song songToEdit = null;
+
+    // Samu: injected from HelloController so the dialog follows the GUI -> BLL -> DAL flow.
+    private MyTunesManager manager;
+
+    public void setManager(MyTunesManager manager) {
+        this.manager = manager;
+    }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -86,7 +94,8 @@ public class NewSongController implements Initializable {
         }
 
         try {
-            SongDAO songDAO = new SongDAO();
+            // Fallback to keep the window functional even if opened without injection.
+            if (manager == null) manager = new MyTunesManager();
 
             if (songToEdit != null) {
                 // --- UPDATE MODE ---
@@ -94,15 +103,16 @@ public class NewSongController implements Initializable {
                 songToEdit.setTitle(title);
                 songToEdit.setArtist(artist);
                 songToEdit.setCategory(category);
-                // songToEdit.setTime(time);
-                // songToEdit.setFilePath(file);
+                // Samu: these two fields were not being updated before, so editing a song did not persist them.
+                songToEdit.setTime(time);
+                songToEdit.setFilePath(file);
 
                 // Save to DB
-                songDAO.updateSong(songToEdit);
+                manager.updateSong(songToEdit);
             } else {
                 // --- CREATE MODE ---
                 Song newSong = new Song(0, title, artist, category, time, file);
-                songDAO.createSong(newSong);
+                manager.createSong(newSong);
             }
 
             closeWindow();

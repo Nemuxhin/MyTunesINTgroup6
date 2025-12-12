@@ -1,6 +1,7 @@
 package int_group6.mytunesintgroup6.gui;
 
 import int_group6.mytunesintgroup6.be.Playlist;
+import int_group6.mytunesintgroup6.bll.MyTunesManager;
 import int_group6.mytunesintgroup6.dal.PlaylistDAO;
 import javafx.util.Duration;
 import int_group6.mytunesintgroup6.be.Song;
@@ -19,6 +20,12 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.TextInputDialog;
 import int_group6.mytunesintgroup6.be.Playlist;
 
+/**
+ * Main controller for the MyTunes UI.
+ *
+ * Samu: This controller focuses on UI behavior and delegates data operations to the
+ * Business Logic Layer (MyTunesManager), which in turn uses the DAO classes.
+ */
 public class HelloController implements Initializable {
 
     // --- FXML INJECTIONS ---
@@ -53,6 +60,13 @@ public class HelloController implements Initializable {
 
 
 
+    // Samu: injected from HelloApplication so we follow GUI -> BLL -> DAL.
+    private MyTunesManager manager;
+
+    public void setManager(MyTunesManager manager) {
+        this.manager = manager;
+    }
+
     private MediaPlayer mediaPlayer; // To play music
     private javafx.collections.ObservableList<Song> allSongs;
     private javafx.collections.transformation.FilteredList<Song> filteredSongs;
@@ -75,10 +89,11 @@ public class HelloController implements Initializable {
         colPlSongTime.setCellValueFactory(new PropertyValueFactory<>("time"));
 
         // --- 2. SETUP DATA & SEARCH CHAIN (The Critical Part) ---
-        SongDAO songDAO = new SongDAO();
+        // Samu: use the BLL manager as the single entry point.
+        if (manager == null) manager = new MyTunesManager();
 
         // A. Master List: Holds the raw data from database
-        allSongs = javafx.collections.FXCollections.observableArrayList(songDAO.getAllSongs());
+        allSongs = javafx.collections.FXCollections.observableArrayList(manager.getAllSongs());
 
         // B. Filtered List: Wraps the Master List. Initially true (shows everything).
         filteredSongs = new javafx.collections.transformation.FilteredList<>(allSongs, b -> true);
@@ -146,8 +161,7 @@ public class HelloController implements Initializable {
         // Playlist Selection Listener (Middle Table)
         tblPlaylists.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
-                PlaylistDAO playlistDAO = new PlaylistDAO();
-                tblSongsInPlaylist.getItems().setAll(playlistDAO.getSongsInPlaylist(newVal));
+                tblSongsInPlaylist.getItems().setAll(manager.getSongsInPlaylist(newVal));
             }
         });
 
@@ -199,26 +213,16 @@ public class HelloController implements Initializable {
         if (mediaPlayer != null) {
             mediaPlayer.stop();
             mediaPlayer.dispose();
-
-            File file = new File(song.getFilePath());
-            if (file.exists()) {
-                Media media = new Media(file.toURI().toString());
-                mediaPlayer = new MediaPlayer(media);
-
-                // Grab the current slider value immediately
-                mediaPlayer.setVolume(volumeSlider.getValue() / 100);
-
-                // ... (Rest of setupProgressBar / play logic) ...
-
-                mediaPlayer.play();
-            }
-
+            mediaPlayer = null;
         }
 
         File file = new File(song.getFilePath());
         if (file.exists()) {
             Media media = new Media(file.toURI().toString());
             mediaPlayer = new MediaPlayer(media);
+
+            // Keep current volume setting
+            mediaPlayer.setVolume(volumeSlider.getValue() / 100);
 
             // Re-connect the slider
             setupProgressBar();
@@ -359,15 +363,17 @@ public class HelloController implements Initializable {
         try {
             javafx.fxml.FXMLLoader fxmlLoader = new javafx.fxml.FXMLLoader(getClass().getResource("/int_group6/mytunesintgroup6/new-song-view.fxml"));
             javafx.scene.Parent root = fxmlLoader.load();
+
+            // Samu: pass the BLL manager to the popup so it follows the same architecture.
+            NewSongController controller = fxmlLoader.getController();
+            controller.setManager(manager);
             javafx.stage.Stage stage = new javafx.stage.Stage();
             stage.setTitle("Add New Song");
             stage.setScene(new javafx.scene.Scene(root));
             stage.showAndWait(); // Wait until the popup closes
 
             // Refresh table after popup closes
-            tblSongs.getItems().clear();
-            SongDAO songDAO = new SongDAO();
-            tblSongs.getItems().addAll(songDAO.getAllSongs());
+            refreshSongTable();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -388,12 +394,17 @@ public class HelloController implements Initializable {
 
             // 3. If user clicks OK, delete it
             if (alert.showAndWait().get() == ButtonType.OK) {
-                // Delete from DB
-                SongDAO songDAO = new SongDAO();
-                songDAO.deleteSong(selectedSong);
+                // Delete from DB (BLL handles DB integrity)
+                manager.deleteSong(selectedSong);
 
-                // Delete from Table (Update UI)
-                tblSongs.getItems().remove(selectedSong);
+                // Update local list so filtered/sorted views stay consistent
+                allSongs.remove(selectedSong);
+
+                // If the deleted song was shown in the currently selected playlist, refresh that list too.
+                Playlist selectedPlaylist = tblPlaylists.getSelectionModel().getSelectedItem();
+                if (selectedPlaylist != null) {
+                    tblSongsInPlaylist.getItems().setAll(manager.getSongsInPlaylist(selectedPlaylist));
+                }
             }
         } else {
             // Show error if nothing is selected
@@ -418,6 +429,8 @@ public class HelloController implements Initializable {
 
                 // 3. GET THE CONTROLLER and pass the song data
                 NewSongController controller = loader.getController();
+                // Samu: ensure edit window uses the BLL.
+                controller.setManager(manager);
                 controller.setSongToEdit(selectedSong); // <--- The magic happens here
 
                 // 4. Show the window
@@ -453,9 +466,8 @@ public class HelloController implements Initializable {
 
         dialog.showAndWait().ifPresent(name -> {
             if (!name.trim().isEmpty()) {
-                PlaylistDAO playlistDAO = new PlaylistDAO();
-                // Capture the new object returned by your DAO
-                Playlist newPlaylist = playlistDAO.createPlaylist(name);
+                // Capture the new object returned by the BLL
+                Playlist newPlaylist = manager.createPlaylist(name);
 
                 if (newPlaylist != null) {
                     // Add directly to table (Fast!)
@@ -479,9 +491,8 @@ public class HelloController implements Initializable {
                 if (!newName.trim().isEmpty()) {
                     selectedPlaylist.setName(newName);
 
-                    PlaylistDAO playlistDAO = new PlaylistDAO();
                     // Use YOUR method name: renamePlaylist
-                    playlistDAO.renamePlaylist(selectedPlaylist);
+                    manager.renamePlaylist(selectedPlaylist);
 
                     tblPlaylists.refresh();
                 }
@@ -500,8 +511,7 @@ public class HelloController implements Initializable {
             alert.setContentText("This will remove the playlist.");
 
             if (alert.showAndWait().get() == ButtonType.OK) {
-                PlaylistDAO playlistDAO = new PlaylistDAO();
-                playlistDAO.deletePlaylist(selectedPlaylist);
+                manager.deletePlaylist(selectedPlaylist);
 
                 tblPlaylists.getItems().remove(selectedPlaylist);
                 // Also clear the "Songs in Playlist" table since the playlist is gone
@@ -518,11 +528,10 @@ public class HelloController implements Initializable {
 
         if (selectedPlaylist != null && selectedSong != null) {
             // 2. Add to DB
-            PlaylistDAO playlistDAO = new PlaylistDAO();
             // We calculate the new index (put it at the end of the list)
             int newIndex = tblSongsInPlaylist.getItems().size();
 
-            playlistDAO.addSongToPlaylist(selectedPlaylist, selectedSong, newIndex);
+            manager.addSongToPlaylist(selectedPlaylist, selectedSong, newIndex);
 
             // 3. Update UI (Add to the middle table immediately)
             tblSongsInPlaylist.getItems().add(selectedSong);
@@ -543,8 +552,7 @@ public class HelloController implements Initializable {
 
         if (selectedPlaylist != null && selectedSong != null) {
             // 2. Remove from DB
-            PlaylistDAO playlistDAO = new PlaylistDAO();
-            playlistDAO.removeSongFromPlaylist(selectedPlaylist, selectedSong);
+            manager.removeSongFromPlaylist(selectedPlaylist, selectedSong);
 
             // 3. Update UI (Remove from list)
             tblSongsInPlaylist.getItems().remove(selectedSong);
@@ -570,6 +578,12 @@ public class HelloController implements Initializable {
 
             // Keep it selected
             tblSongsInPlaylist.getSelectionModel().select(index - 1);
+
+            // Samu: persist order in DB so it survives app restart
+            Playlist selectedPlaylist = tblPlaylists.getSelectionModel().getSelectedItem();
+            if (selectedPlaylist != null) {
+                manager.updatePlaylistOrder(selectedPlaylist, tblSongsInPlaylist.getItems());
+            }
         }
     }
 
@@ -587,6 +601,12 @@ public class HelloController implements Initializable {
 
             // Keep it selected
             tblSongsInPlaylist.getSelectionModel().select(index + 1);
+
+            // Samu: persist order in DB so it survives app restart
+            Playlist selectedPlaylist = tblPlaylists.getSelectionModel().getSelectedItem();
+            if (selectedPlaylist != null) {
+                manager.updatePlaylistOrder(selectedPlaylist, tblSongsInPlaylist.getItems());
+            }
         }
     }
 
@@ -594,14 +614,12 @@ public class HelloController implements Initializable {
     // Helper to reload data
     private void refreshPlaylists() {
         tblPlaylists.getItems().clear();
-        PlaylistDAO playlistDAO = new PlaylistDAO();
-        tblPlaylists.getItems().addAll(playlistDAO.getAllPlaylists());
+        tblPlaylists.getItems().addAll(manager.getAllPlaylists());
     }
 
     private void refreshSongTable() {
-        SongDAO songDAO = new SongDAO();
-        tblSongs.getItems().clear();
-        tblSongs.getItems().addAll(songDAO.getAllSongs());
+        // Samu: update the master list so filtering/sorting stays connected.
+        allSongs.setAll(manager.getAllSongs());
     }
 
 

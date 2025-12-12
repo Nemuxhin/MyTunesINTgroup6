@@ -211,4 +211,34 @@ public class PlaylistDAO {
             e.printStackTrace();
         }
     }
+
+    // UPDATE: Persist the order of songs within a playlist
+    // We keep SongIndex in sync with the UI order so the playlist keeps the same order after restart.
+    public void updatePlaylistOrder(Playlist playlist, List<Song> orderedSongs) {
+        String sql = "UPDATE PlaylistSong SET SongIndex = ? WHERE PlaylistId = ? AND SongId = ?";
+
+        try (Connection conn = connectionProvider.getConnection()) {
+            conn.setAutoCommit(false);
+
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                for (int i = 0; i < orderedSongs.size(); i++) {
+                    Song song = orderedSongs.get(i);
+                    pstmt.setInt(1, i);
+                    pstmt.setInt(2, playlist.getId());
+                    pstmt.setInt(3, song.getId());
+                    pstmt.addBatch();
+                }
+                pstmt.executeBatch();
+                conn.commit();
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(true);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }
