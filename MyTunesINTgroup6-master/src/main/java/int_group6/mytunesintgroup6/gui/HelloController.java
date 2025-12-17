@@ -54,8 +54,7 @@ public class HelloController implements Initializable {
 
     @FXML private TableView<Playlist> tblPlaylists;
     @FXML private TableColumn<Playlist, String> colPlaylistName;
-
-    // Make sure these match your FXML fx:id exactly
+    
     @FXML private Button btnRewind;
     @FXML private Button btnFastForward;
     @FXML private javafx.scene.web.WebView youtubeView;
@@ -143,7 +142,6 @@ public class HelloController implements Initializable {
         btnPause.setOnAction(event -> pauseSong());
         btnStop.setOnAction(event -> stopSong());
 
-        // FIX #2: Connecting the missing buttons
         if (btnRewind != null) btnRewind.setOnAction(event -> rewindSong());
         if (btnFastForward != null) btnFastForward.setOnAction(event -> fastForwardSong());
         if (btnClose != null) btnClose.setOnAction(event -> closeApp());
